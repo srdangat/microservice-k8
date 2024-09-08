@@ -1,0 +1,80 @@
+## Nginx Ingress manifest
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingerss
+  namespace: nginx-ingress
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: <ALB-SVC-URL>
+      http:
+        paths:
+        - pathType: Prefix
+          path: /
+          backend:
+            service:
+              name: homepage
+              port:
+                number: 80
+        - pathType: Prefix
+          path: /mobile/
+          backend:
+            service:
+              name: mobilepage
+              port:
+                number: 80
+        - pathType: Prefix
+          path: /laptop/
+          backend:
+            service:
+              name: laptoppage
+              port:
+                number: 80
+
+
+---
+## AWS Alb ingress manifest
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: micro-service-ingress
+  annotations:
+    # Add the annotation for the ALB Ingress Controller
+    alb.ingress.kubernetes.io/healthcheck-protocol: HTTP 
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/path-type: prefix
+    ## SSL Settings
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}, {"HTTP":80}]'
+    alb.ingress.kubernetes.io/certificate-arn: <acm-arn>
+    # SSL Redirect Setting
+    alb.ingress.kubernetes.io/ssl-redirect: '443'   
+    # Optional: specify the load balancer name
+    alb.ingress.kubernetes.io/load-balancer-name: micro-service-lb
+spec:
+  ingressClassName: alb
+  rules:
+    - http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: homepage
+                port:
+                  number: 80
+          - path: /mobile/
+            pathType: Prefix
+            backend:
+              service:
+                name: mobilepage
+                port:
+                  number: 80
+          - path: /laptop/
+            pathType: Prefix
+            backend:
+              service:
+                name: laptoppage
+                port:
+                  number: 80
